@@ -21,14 +21,14 @@ public class TicketController {
 
     @GetMapping("/tickets")
     public ResponseEntity<Page<TicketDto>> listTickets(
+            @RequestParam(required = false) Boolean completed,
             @RequestParam(required = false) Long startMillisFromEpoch,
             @RequestParam(required = false) Long endMillisFromEpoch,
-            @RequestParam(required = false) Boolean completed,
             Pageable pageable) {
 
         return ResponseEntity.ok(
                 ticketService
-                        .listTickets(startMillisFromEpoch, endMillisFromEpoch, completed, pageable)
+                        .listTickets(completed, startMillisFromEpoch, endMillisFromEpoch, pageable)
                         .map(TicketDto::new));
     }
 

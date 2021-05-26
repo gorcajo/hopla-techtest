@@ -10,7 +10,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAccessor;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class TicketService {
@@ -41,14 +46,46 @@ public class TicketService {
         // TODO
     }
 
+    public Page<Ticket> listTickets(Boolean completed, Pageable pageable) {
+        return listTickets(completed, null, null, pageable);
+    }
+
+    public Page<Ticket> listTickets(Long startMillisFromEpoch, Long endMillisFromEpoch, Pageable pageable) {
+        return listTickets(null, startMillisFromEpoch, endMillisFromEpoch, pageable);
+    }
+
+    public Page<Ticket> listTickets(Pageable pageable) {
+        return listTickets(null, null, null, pageable);
+    }
+
     public Page<Ticket> listTickets(
+            Boolean completed,
             Long startMillisFromEpoch,
             Long endMillisFromEpoch,
-            Boolean completed,
             Pageable pageable) {
 
-        // TODO
-        return new PageImpl<>(List.of(new Ticket(), new Ticket()));
+        OffsetDateTime from = null;
+        OffsetDateTime to = null;
+
+        if (!Objects.isNull(startMillisFromEpoch) &&  !Objects.isNull(endMillisFromEpoch)) {
+            from = OffsetDateTime.ofInstant(
+                    Instant.ofEpochMilli(startMillisFromEpoch),
+                    ZoneId.of("Europe/Madrid"));
+
+            to = OffsetDateTime.ofInstant(
+                    Instant.ofEpochMilli(endMillisFromEpoch),
+                    ZoneId.of("Europe/Madrid"));
+        }
+
+        if (!Objects.isNull(completed) && !Objects.isNull(from)) {
+            return ticketRepository.findAllByCompletedAndCreatedOnBetween(completed, from, to, pageable);
+        } else if (!Objects.isNull(completed)) {
+            return ticketRepository.findAllByCompleted(completed, pageable);
+        } else if (!Objects.isNull(from)) {
+            return ticketRepository.findAllByCreatedOnBetween(from, to, pageable);
+        } else {
+            return ticketRepository.findAll(pageable);
+        }
     }
 
     public Ticket retrieveTicket(long id) {

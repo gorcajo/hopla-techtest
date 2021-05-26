@@ -12,15 +12,19 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TicketServiceTest {
@@ -53,12 +57,12 @@ public class TicketServiceTest {
         var now = OffsetDateTime.now();
 
         when(fakeTicketRepo.save(any(Ticket.class)))
-            .thenReturn(new Ticket(
-                    1L,
-                    3,
-                    false,
-                    now,
-                    List.of()));
+                .thenReturn(new Ticket(
+                        1L,
+                        3,
+                        false,
+                        now,
+                        List.of()));
 
         when(fakeTimeService.getCurrentOffsetDateTime()).thenReturn(now);
 
@@ -115,15 +119,83 @@ public class TicketServiceTest {
     }
 
     @Test
-    public void list_tickets() {
+    public void list_all_tickets() {
         // arrange
 
-        when(fakeTicketRepo.findById(1L)).thenReturn(Optional.empty());
+        when(fakeTicketRepo.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(new Ticket(), new Ticket(), new Ticket())));
 
         // act
 
-        var ticket = service.retrieveTicket(1L);
+        var ticketsPage = service.listTickets(Pageable.unpaged());
 
         // assert
+
+        var tickets = ticketsPage.stream().collect(Collectors.toList());
+        assertThat(tickets.size(), is(3));
+    }
+
+    @Test
+    public void list_tickets_by_completed() {
+        // arrange
+
+        when(fakeTicketRepo.findAllByCompleted(eq(true), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(new Ticket(), new Ticket())));
+
+        // act
+
+        var ticketsPage = service.listTickets(true, Pageable.unpaged());
+
+        // assert
+
+        var tickets = ticketsPage.stream().collect(Collectors.toList());
+        assertThat(tickets.size(), is(2));
+    }
+
+    @Test
+    public void list_tickets_by_date() {
+        // arrange
+
+        when(fakeTicketRepo
+                .findAllByCreatedOnBetween(any(OffsetDateTime.class), any(OffsetDateTime.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(new Ticket(), new Ticket(), new Ticket(), new Ticket())));
+
+        // act
+
+        var ticketsPage = service.listTickets(
+                1622000000000L,
+                1622100000000L,
+                Pageable.unpaged());
+
+        // assert
+
+        var tickets = ticketsPage.stream().collect(Collectors.toList());
+        assertThat(tickets.size(), is(4));
+    }
+
+    @Test
+    public void list_tickets_by_completed_and_date() {
+        // arrange
+
+        when(fakeTicketRepo
+                .findAllByCompletedAndCreatedOnBetween(
+                        eq(false),
+                        any(OffsetDateTime.class),
+                        any(OffsetDateTime.class),
+                        any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(new Ticket())));
+
+        // act
+
+        var ticketsPage = service.listTickets(
+                false,
+                1622000000000L,
+                1622100000000L,
+                Pageable.unpaged());
+
+        // assert
+
+        var tickets = ticketsPage.stream().collect(Collectors.toList());
+        assertThat(tickets.size(), is(1));
     }
 }
