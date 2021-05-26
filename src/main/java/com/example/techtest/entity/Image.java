@@ -13,15 +13,21 @@ public class Image {
     @JoinColumn(name = "ticket_id")
     private Ticket ticket;
 
-    private String path;
+    private String name;
 
     public Image() {
     }
 
-    public Image(long id, Ticket ticket, String path) {
+    public Image(Ticket ticket, String name) {
+        this.id = 0L;
+        this.ticket = ticket;
+        this.name = name;
+    }
+
+    public Image(long id, Ticket ticket, String name) {
         this.id = id;
         this.ticket = ticket;
-        this.path = path;
+        this.name = name;
     }
 
     public long getId() {
@@ -40,11 +46,11 @@ public class Image {
         this.ticket = ticket;
     }
 
-    public String getPath() {
-        return path;
+    public String getName() {
+        return name;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setName(String name) {
+        this.name = name;
     }
 }

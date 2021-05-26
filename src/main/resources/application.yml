@@ -11,3 +11,9 @@ spring:
   jpa:
     hibernate:
         ddl-auto: update
+
+cloudinary:
+  url: https://api.cloudinary.com
+  cloudName: techtest
+  apiKey: asdasd123123
+  secret: 123123asdasd

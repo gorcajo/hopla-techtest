@@ -28,7 +28,7 @@ public class TicketDto {
         this.desiredImageCount = entity.getDesiredImageCount();
         this.completed = entity.getCompleted();
         this.createdOn = entity.getCreatedOn();
-        this.imagePaths = entity.getImages().stream().map(Image::getPath).collect(Collectors.toList());
+        this.imagePaths = entity.getImages().stream().map(Image::getName).collect(Collectors.toList());
     }
 
     public Long getId() {

@@ -1,5 +1,6 @@
 package com.example.techtest.service;
 
+import com.example.techtest.cloudinary.CloudinaryRestClient;
 import com.example.techtest.entity.Image;
 import com.example.techtest.entity.Ticket;
 import com.example.techtest.exception.NotFoundException;
@@ -18,10 +19,12 @@ import org.springframework.data.domain.Pageable;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
@@ -38,6 +41,9 @@ public class TicketServiceTest {
     @Mock
     private TimeService fakeTimeService;
 
+    @Mock
+    private CloudinaryRestClient fakeCloudinaryClient;
+
     @Captor
     ArgumentCaptor<Ticket> ticketCaptor;
 
@@ -45,7 +51,44 @@ public class TicketServiceTest {
 
     @Before
     public void setup() {
-        service = new TicketService(fakeTicketRepo, fakeImageRepo, fakeTimeService);
+        service = new TicketService(fakeTicketRepo, fakeImageRepo, fakeTimeService, fakeCloudinaryClient);
+    }
+
+    @Test
+    public void store_image() {
+        // arrange
+
+        var ticket = new Ticket(
+                1L,
+                3,
+                false,
+                OffsetDateTime.now(),
+                List.of(new Image(), new Image()));
+
+        when(fakeTicketRepo.findById(1L)).thenReturn(Optional.of(ticket));
+
+        var now = OffsetDateTime.now();
+        when(fakeTimeService.getCurrentOffsetDateTime()).thenReturn(now);
+        when(fakeImageRepo.save(any(Image.class))).thenReturn(new Image(14L, ticket, "testName"));
+
+        // act
+
+        var future = service.storeImage(1L, "testBase64", "testName");
+
+        Image image;
+
+        try {
+            image = future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            fail();
+            return;
+        }
+
+        // assert
+
+        assertThat(image.getId(), is(14L));
+        assertThat(image.getName(), is("testName"));
+        assertThat(image.getTicket(), is(ticket));
     }
 
     @Test
