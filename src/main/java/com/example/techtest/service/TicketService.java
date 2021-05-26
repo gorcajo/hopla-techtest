@@ -31,8 +31,10 @@ public class TicketService {
 
     public Ticket createTicket(int desiredImageCount) {
         var ticket = new Ticket();
-        ticket.setId(1);
-        return ticket;
+        ticket.setDesiredImageCount(desiredImageCount);
+        ticket.setCompleted(false);
+        ticket.setCreatedOn(timeService.getCurrentOffsetDateTime());
+        return ticketRepository.save(ticket);
     }
 
     public void storeImage(Long ticketId, String imageBase64, String imageName) {
@@ -49,12 +51,7 @@ public class TicketService {
         return new PageImpl<>(List.of(new Ticket(), new Ticket()));
     }
 
-    public Ticket retrieveTicket(long ticketId) {
-        // TODO
-        if (ticketId > 0) {
-            return new Ticket();
-        } else {
-            throw new NotFoundException();
-        }
+    public Ticket retrieveTicket(long id) {
+        return ticketRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 }
