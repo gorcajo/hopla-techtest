@@ -132,7 +132,7 @@ class UserControllerTest_Int {
     void access_with_wrong_token() {
         given()
                 .baseUri("http://localhost:" + port)
-                .header(new Header("Authorization", "Bearer: asdasdasd"))
+                .header(new Header("Authorization", "Bearer asdasdasd"))
                 .body(new TicketCreationRequestDto(3))
                 .contentType(ContentType.JSON)
                 .when()
@@ -169,7 +169,7 @@ class UserControllerTest_Int {
 
         given()
                 .baseUri("http://localhost:" + port)
-                .header(new Header("Authorization", "Bearer: " + token))
+                .header(new Header("Authorization", "Bearer " + token))
                 .body(new TicketCreationRequestDto(3))
                 .contentType(ContentType.JSON)
                 .when()

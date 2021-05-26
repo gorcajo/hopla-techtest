@@ -49,7 +49,7 @@ class TicketControllerTest_Int {
                 .as(TokenDto.class)
                 .getToken();
 
-        authorizationHeader = new Header("Authorization", "Bearer: " + token);
+        authorizationHeader = new Header("Authorization", "Bearer " + token);
     }
 
     @Test
