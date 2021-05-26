@@ -17,10 +17,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -63,7 +65,8 @@ public class TicketServiceTest {
                 3,
                 false,
                 OffsetDateTime.now(),
-                List.of(new Image(), new Image()));
+                Stream.of(new Image(), new Image()).collect(Collectors.toList())
+        );
 
         when(fakeTicketRepo.findById(1L)).thenReturn(Optional.of(ticket));
 
@@ -75,10 +78,10 @@ public class TicketServiceTest {
 
         var future = service.storeImage(1L, "testBase64", "testName");
 
-        Image image;
+        Ticket updatedTiket;
 
         try {
-            image = future.get();
+            updatedTiket = future.get();
         } catch (InterruptedException | ExecutionException e) {
             fail();
             return;
@@ -86,9 +89,8 @@ public class TicketServiceTest {
 
         // assert
 
-        assertThat(image.getId(), is(14L));
-        assertThat(image.getName(), is("testName"));
-        assertThat(image.getTicket(), is(ticket));
+        assertThat(updatedTiket.getId(), is(1L));
+        assertThat(updatedTiket.getCompleted(), is(Boolean.TRUE));
     }
 
     @Test

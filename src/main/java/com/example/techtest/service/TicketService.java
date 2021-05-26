@@ -59,7 +59,7 @@ public class TicketService {
     }
 
     @Async
-    public Future<Image> storeImage(Long ticketId, String imageBase64, String imageName) {
+    public Future<Ticket> storeImage(Long ticketId, String imageBase64, String imageName) {
         var ticket = ticketRepository.findById(ticketId).orElseThrow(NotFoundException::new);
         var image = new Image(ticket, "/tmp/" + imageName);
 
@@ -72,7 +72,16 @@ public class TicketService {
                         timeService.getCurrentOffsetDateTime().toInstant().toEpochMilli(),
                         secret));
 
-        return new AsyncResult<>(imageRepository.save(image));
+        imageRepository.save(image);
+        ticket.getImages().add(image);
+
+        if (ticket.getDesiredImageCount() == ticket.getImages().size()) {
+            ticket.setCompleted(true);
+        }
+
+        ticketRepository.save(ticket);
+
+        return new AsyncResult<>(ticket);
     }
 
     public Page<Ticket> listTickets(Boolean completed, Pageable pageable) {
